@@ -17,6 +17,8 @@
 #include <QGraphicsScene>
 #include <QGraphicsSvgItem>
 #include <QSvgRenderer>
+#include "arduino.h"
+
 
 
 QT_BEGIN_NAMESPACE
@@ -57,6 +59,14 @@ private slots:
     void generatePdfReport();
     void setupStatsCharts();
 
+    //fire
+    void showFirePage();
+    void toggleMuteAlarm();
+    void handleSmoke();
+    void backFromFire();
+
+
+
 private:
     Ui::MainWindow *ui;
     QSqlQueryModel *examModel;
@@ -64,6 +74,15 @@ private:
     QString selectedPdfPathCreate;
     QString selectedPdfPathUpdate;
     bool isCreatingNewExam;
+
+    //fire
+
+    ArduinoInterface *arduino;
+    bool alarmMuted = false;
+
+    void refreshFireModel();
+
+    bool checkForCanceledExams(); // output from database
 
     // Initialization helpers
     void initializeFormComponents();

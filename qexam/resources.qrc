@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/maps">
+        <file>maps/tunisia.svg</file>
+        <file>maps/search.png</file>
+    </qresource>
+</RCC>

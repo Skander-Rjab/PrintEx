@@ -15,6 +15,8 @@
 #include <QTableView>
 #include <QFile>
 #include <QDomDocument>
+#include "arduino.h"
+
 
 
 
@@ -63,6 +65,23 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnBackCalendar, &QPushButton::clicked,this, &MainWindow::showListPage);
     connect(ui->btnMap,     &QPushButton::clicked, this, &MainWindow::showMapPage);
     connect(ui->btnBackMap, &QPushButton::clicked, this, &MainWindow::showListPage);
+
+
+    arduino = new ArduinoInterface(this);
+    connect(arduino, &ArduinoInterface::error,
+            this, [](const QString &msg){
+                QMessageBox::warning(nullptr, "Arduino Error", msg);
+            });
+    if (!arduino->connectPort(9600)) {
+        // error() will already have shown a warning
+    }
+
+
+
+
+    connect(ui->btnFireDetection, &QPushButton::clicked,this, &MainWindow::showFirePage);
+    connect(ui->btnBackFire,&QPushButton::clicked, this,&MainWindow::backFromFire);
+    connect(ui->btnMuteAlarm, &QPushButton::clicked,this, &MainWindow::toggleMuteAlarm);
 
 
     //calendar
@@ -142,11 +161,8 @@ void MainWindow::refreshExamModel()
     ui->tableView->resizeColumnsToContents();
 }
 
-void MainWindow::showListPage()
-{
-    refreshExamModel();
-    ui->stackedWidget->setCurrentWidget(ui->listPage);
-}
+
+
 
 void MainWindow::showCreatePage()
 {
@@ -203,7 +219,7 @@ void MainWindow::createExam()
     Exam exam;
     exam.setExamId(Exam::generateNewExamId());
     exam.setInstitutionId(ui->cmbInstitution->currentData().toInt());
-    exam.setEmployeeId(2); // when integration replace with function to get emp id
+    exam.setEmployeeId(1); // when integration replace with function to get emp id
     exam.setExamContent(file.readAll());
     exam.setSubmissionDate(QDateTime::currentDateTime());
     exam.setScheduledDeliveryDate(ui->dtScheduled->dateTime());
@@ -241,7 +257,7 @@ void MainWindow::updateExam()
     Exam exam;
     exam.setExamId(currentExamId);
     exam.setInstitutionId(ui->cmbInstitution->currentData().toInt());
-    exam.setEmployeeId(2); // when integration replace with function to get emp id
+    exam.setEmployeeId(1); // when integration replace with function to get emp id
     exam.setScheduledDeliveryDate(ui->dtScheduled->dateTime());
     exam.setExamContent(pdfData);
     exam.setStatus(ui->cmbStatus->currentText());
@@ -662,39 +678,91 @@ void MainWindow::setupStatsCharts()
 
     // Institution Chart
     QSqlQuery institutionQuery;
-    if(institutionQuery.exec("SELECT i.NAME, COUNT(*) "
-                              "FROM QT_EXAMS e "
-                              "JOIN QT_INSTITUTIONS i ON e.INSTITUTION_ID = i.INSTITUTION_ID "
-                              "GROUP BY i.NAME"))
+    if (institutionQuery.exec(
+            "SELECT i.NAME, COUNT(*) "
+            "FROM QT_EXAMS e "
+            "JOIN QT_INSTITUTIONS i ON e.INSTITUTION_ID = i.INSTITUTION_ID "
+            "GROUP BY i.NAME"))
     {
-        QPieSeries *pieSeries = new QPieSeries();
+        QVector<QPair<QString,int>> data;
         int totalCount = 0;
-        bool hasData = false;
 
-        while(institutionQuery.next()) {
-            hasData = true;
-            QString name = institutionQuery.value(0).toString();
-            int count = institutionQuery.value(1).toInt();
-            totalCount += count; //3leh tquery il database for the total number of exams when you can calculate it here
-            pieSeries->append(name, count);
+        // Collect data
+        while (institutionQuery.next()) {
+            QString name  = institutionQuery.value(0).toString();
+            int     count = institutionQuery.value(1).toInt();
+            data.append(qMakePair(name, count));
+            totalCount += count;
         }
 
-        if(hasData && totalCount > 0) {
+        if (!data.isEmpty() && totalCount > 0) {
+            // --- Inner series: percentages inside ---
+            QPieSeries *seriesPerc = new QPieSeries();
+            for (int i = 0; i < data.size(); ++i)
+                seriesPerc->append(data[i].first, data[i].second);
+
+            seriesPerc->setLabelsVisible(true);
+            seriesPerc->setLabelsPosition(QPieSlice::LabelInsideTangential);
+            seriesPerc->setPieSize(0.6);
+            seriesPerc->setHoleSize(0.0);
+
+            QFont fontPerc;
+            fontPerc.setPointSize(8);
+            // Non‑range‑based loop to avoid detach issues
+            QList<QPieSlice*> percSlices = seriesPerc->slices();
+            for (int i = 0; i < percSlices.size(); ++i) {
+                QPieSlice *slice = percSlices.at(i);
+                qreal pct = slice->percentage() * 100.0;
+                slice->setLabel(QString("%1\%").arg(pct, 0, 'f', 1));
+                slice->setLabelFont(fontPerc);
+                slice->setLabelColor(Qt::white);
+                slice->setLabelVisible(true);
+            }
+
+            // --- Outer series: names outside ---
+            QPieSeries *seriesNames = new QPieSeries();
+            for (int i = 0; i < data.size(); ++i)
+                seriesNames->append(data[i].first, data[i].second);
+
+            seriesNames->setLabelsVisible(true);
+            seriesNames->setLabelsPosition(QPieSlice::LabelOutside);
+            seriesNames->setPieSize(0.8);
+            seriesNames->setHoleSize(0.6);
+
+            QFont fontName;
+            fontName.setPointSize(9);
+            // Non‑range‑based loop here as well
+            QList<QPieSlice*> nameSlices = seriesNames->slices();
+            for (int i = 0; i < nameSlices.size(); ++i) {
+                QPieSlice *slice = nameSlices.at(i);
+                slice->setLabelFont(fontName);
+                slice->setLabelColor(Qt::black);
+                slice->setBrush(Qt::transparent);
+                slice->setPen(QPen(Qt::transparent));
+            }
+
+            // --- Build chart ---
             QChart *pieChart = new QChart();
-            pieChart->addSeries(pieSeries);
-            pieChart->setTitle("Institution Distribution (" + QString::number(totalCount) + " exams)");
+            pieChart->addSeries(seriesNames);
+            pieChart->addSeries(seriesPerc);
+            pieChart->setTitle(
+                QString("Institution Distribution (%1 exams)").arg(totalCount)
+                );
             pieChart->setAnimationOptions(QChart::SeriesAnimations);
+            pieChart->legend()->hide();
 
             QChartView *pieChartView = new QChartView(pieChart);
             pieChartView->setRenderHint(QPainter::Antialiasing);
             layout->addWidget(pieChartView);
             chartsCreated = true;
-        } else {
-            delete pieSeries;
         }
-    } else {
+        // else: no data case
+    }
+    else {
         qDebug() << "Institution query error:" << institutionQuery.lastError();
     }
+
+
 
 
     if(!chartsCreated) {
@@ -939,3 +1007,122 @@ void MainWindow::showMapPage()
     setupMapView();
     ui->stackedWidget->setCurrentWidget(ui->mapPage);
 }
+
+//fire
+
+void MainWindow::showFirePage()
+{
+    // stop gentle when entering Fire page
+    arduino->sendGentleOff();
+
+    // allow one fresh fire alert
+    arduino->resetSmokeNotification();
+    connect(arduino, &ArduinoInterface::smokeDetected,
+            this, &MainWindow::handleSmoke);
+
+    // enable smoke‐alarm on Arduino
+    arduino->sendSmokeOn();
+
+    refreshFireModel();
+    ui->stackedWidget->setCurrentWidget(ui->firePage);
+}
+
+
+void MainWindow::backFromFire()
+{
+    // disable fire‐alarm
+    disconnect(arduino, &ArduinoInterface::smokeDetected,
+               this, &MainWindow::handleSmoke);
+    arduino->sendSmokeOff();
+
+    // reset mute‐state
+    alarmMuted = false;
+    ui->btnMuteAlarm->setText("🔇 Mute");
+    arduino->sendUnmuteCommand();
+
+    // go back to list (this will also handle gentle‐buzz)
+    showListPage();
+}
+
+void MainWindow::toggleMuteAlarm()
+{
+    alarmMuted = !alarmMuted;
+    if (alarmMuted) {
+        ui->btnMuteAlarm->setText("🔊 Unmute");
+        arduino->sendMuteCommand();
+    } else {
+        ui->btnMuteAlarm->setText("🔇 Mute");
+        arduino->sendUnmuteCommand();
+    }
+}
+
+void MainWindow::refreshFireModel()
+{
+    // only id, submission, scheduled, status, destination for non-completed
+    QString q = R"(
+      SELECT EXAM_ID,
+             TO_CHAR(SUBMISSION_DATE,'YYYY-MM-DD HH24:MI') AS SUBMISSION,
+             TO_CHAR(SCHEDULED_DELIVERY_DATE,'YYYY-MM-DD HH24:MI') AS SCHEDULED,
+             STATUS,
+             DESTINATION_ADDRESS
+      FROM QT_EXAMS
+      WHERE STATUS <> 'Completed'
+    )";
+    auto *m = new QSqlQueryModel(this);
+    m->setQuery(q);
+    m->setHeaderData(0, Qt::Horizontal, "Exam ID");
+    m->setHeaderData(1, Qt::Horizontal, "Submission");
+    m->setHeaderData(2, Qt::Horizontal, "Scheduled");
+    m->setHeaderData(3, Qt::Horizontal, "Status");
+    m->setHeaderData(4, Qt::Horizontal, "Destination");
+    ui->fireTableView->setModel(m);
+    ui->fireTableView->resizeColumnsToContents();
+}
+
+
+
+void MainWindow::handleSmoke()
+{
+    if (!alarmMuted) {
+        QMessageBox::critical(this, "🔥 Fire Detected",
+                              "Smoke detected! Cancelling all pending exams.");
+    } else {
+        QMessageBox::warning(this, "🔥 Fire (Muted)",
+                             "Smoke detected (muted), cancelling exams.");
+    }
+
+    QSqlQuery q;
+    if (!q.exec("UPDATE QT_EXAMS SET STATUS='Canceled' WHERE STATUS <> 'Completed'")) {
+        QMessageBox::critical(this, "DB Error", q.lastError().text());
+    }
+
+    refreshExamModel();
+    refreshFireModel();
+}
+
+
+bool MainWindow::checkForCanceledExams()
+{
+    QSqlQuery q;
+    if (!q.exec("SELECT COUNT(*) FROM QT_EXAMS WHERE STATUS='Canceled'")) {
+        return false;
+    }
+    if (q.next())
+        return q.value(0).toInt() > 0;
+    return false;
+}
+
+
+void MainWindow::showListPage()
+{
+    refreshExamModel();
+    ui->stackedWidget->setCurrentWidget(ui->listPage);
+
+    // buzz if there are canceled exams
+    if (checkForCanceledExams()) {
+        arduino->sendGentleOn();
+    } else {
+        arduino->sendGentleOff();
+    }
+}
+
