@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/image">
+        <file>1920x1080-apricot-solid-color-background.jpg</file>
+        <file>about.png</file>
+        <file>employee.png</file>
+        <file>exam.png</file>
+        <file>logo.png</file>
+        <file>printer.png</file>
+        <file>university.png</file>
+        <file>center.png</file>
+    </qresource>
+</RCC>

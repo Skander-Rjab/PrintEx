@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>InstitutionWidget</class>
+ <widget class="QWidget" name="InstitutionWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1600</width>
+    <height>900</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>1600</width>
+    <height>900</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Institution Management</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    InstitutionWidget {
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            stop:0 #f8f9fa, stop:1 #e9ecef);
+    }
+    QGroupBox {
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        margin-top: 20px;
+        padding-top: 15px;
+        font: bold 14px 'Segoe UI';
+        color: #2b2d42;
+        background: white;
+    }
+    QPushButton {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font: 13px 'Segoe UI';
+        min-width: 120px;
+    }
+    QPushButton:hover {
+        background-color: #5a6268;
+    }
+    QPushButton:pressed {
+        background-color: #545b62;
+    }
+    QTableView {
+        background: white;
+        border: 2px solid #dee2e6;
+        selection-background-color: #cce3ff;
+        alternate-background-color:#dadde0;
+        color: #2b2d42;
+    }
+    QTableView::item:selected {
+        background-color: #5d6294;
+    }
+    QTableView::item:!selected:alternate {
+        background-color: #dadde0;
+    }
+    QHeaderView::section {
+        background: #6c757d;
+        color: white;
+        padding: 8px;
+        border: none;
+    }
+    QLineEdit, QComboBox, QDateTimeEdit {
+        background-color: black;
+        border: 2px solid #ced4da;
+        border-radius: 4px;
+        padding: 6px;
+        font: 13px 'Segoe UI';
+    }
+    QLabel {
+        font: 13px 'Segoe UI';
+        color: #495057;
+    }
+   </string>
+  </property>
+  <widget class="QTableView" name="tableView">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>80</y>
+     <width>1100</width>
+     <height>500</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnAdd">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>590</y>
+     <width>160</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>➕ Add Institution</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnDelete">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>590</y>
+     <width>160</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>❌ Delete</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnUpdate">
+   <property name="geometry">
+    <rect>
+     <x>370</x>
+     <y>590</y>
+     <width>160</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>✏️ Update</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="txtSearch">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>30</y>
+     <width>300</width>
+     <height>35</height>
+    </rect>
+   </property>
+   <property name="placeholderText">
+    <string>Search institutions...</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnHome">
+   <property name="geometry">
+    <rect>
+     <x>940</x>
+     <y>30</y>
+     <width>160</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>🏠 Home</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnExport">
+   <property name="geometry">
+    <rect>
+     <x>1130</x>
+     <y>130</y>
+     <width>160</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>📄 Export PDF</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="btnStats">
+   <property name="geometry">
+    <rect>
+     <x>1130</x>
+     <y>210</y>
+     <width>160</width>
+     <height>40</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>📈 Statistics</string>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="grpInstitutionForm">
+   <property name="geometry">
+    <rect>
+     <x>710</x>
+     <y>390</y>
+     <width>1200</width>
+     <height>600</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Institution Details</string>
+   </property>
+   <widget class="QLineEdit" name="txtName">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>50</y>
+      <width>300</width>
+      <height>35</height>
+     </rect>
+    </property>
+    <property name="placeholderText">
+     <string>Institution Name</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txtContact">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>100</y>
+      <width>300</width>
+      <height>35</height>
+     </rect>
+    </property>
+    <property name="placeholderText">
+     <string>Contact Info</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="txtAddress">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>150</y>
+      <width>300</width>
+      <height>35</height>
+     </rect>
+    </property>
+    <property name="placeholderText">
+     <string>Email Address</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnSubmit">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>200</y>
+      <width>160</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>💾 Save</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnCancel">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>200</y>
+      <width>160</width>
+      <height>40</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>❌ Cancel</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
