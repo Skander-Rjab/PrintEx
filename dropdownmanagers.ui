@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ComboBox</class>
+ <widget class="QComboBox" name="dropdownmanagers">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>200</width>
+    <height>32</height>
+   </rect>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QComboBox {
+    background-color: #f9f9f9;
+    border: 2px solid #3498db;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 14px;
+    color: #2c3e50;
+}
+
+QComboBox:hover {
+    border: 2px solid #2980b9;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox::down-arrow {
+    image: url(:/images/dropdown-arrow.png);
+    width: 12px;
+    height: 12px;
+}
+
+QComboBox QAbstractItemView {
+    border: 2px solid #3498db;
+    border-radius: 6px;
+    background-color: white;
+    selection-background-color: #3498db;
+    selection-color: white;
+}</string>
+  </property>
+ </widget>
+</ui>

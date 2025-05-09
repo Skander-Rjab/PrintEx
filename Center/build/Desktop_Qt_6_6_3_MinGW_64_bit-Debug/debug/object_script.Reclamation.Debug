@@ -1,0 +1,12 @@
+debug/connection.o
+debug/editreclamation.o
+debug/main.o
+debug/mainwindow.o
+debug/reclamation.o
+debug/smtp.o
+debug/qrc_img.o
+debug/qrc_resc.o
+debug/qrc_resources.o
+debug/moc_editreclamation.o
+debug/moc_mainwindow.o
+debug/moc_smtp.o
